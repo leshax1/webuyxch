@@ -24,6 +24,11 @@ func BalanceHandler(w http.ResponseWriter, r *http.Request) {
 	req.Header.Set("OK-ACCESS-TIMESTAMP", timestamp)
 	req.Header.Set("OK-ACCESS-PASSPHRASE", os.Getenv("okxPassPhrase"))
 
+	if os.Getenv("okxSimulatedTrading") == "1" {
+		fmt.Println("Simulation header added")
+		req.Header.Set("x-simulated-trading", "1")
+	}
+
 	signature := utils.CalculateSignature(os.Getenv("okxApiSecret"), timestamp, "GET", endpoint, "")
 	req.Header.Set("OK-ACCESS-SIGN", signature)
 

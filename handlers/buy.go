@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,12 +11,60 @@ import (
 	"webuyxch/utils"
 )
 
+type RequestBody struct {
+	InstID  string `json:"instId"`
+	TDMode  string `json:"tdMode"`
+	Side    string `json:"side"`
+	OrdType string `json:"ordType"`
+	Sz      string `json:"sz"`
+	TgtCcy  string `json:"tgtCcy"`
+}
+
+type BuyRequest struct {
+	Quantity float32 `json:"quantity,string"`
+}
+
 func BuyHandler(w http.ResponseWriter, r *http.Request) {
-	endpoint := "/api/v5/account/balance"
+	endpoint := "/api/v5/trade/order"
 	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05.999Z")
 	url := fmt.Sprintf("%s%s", os.Getenv("okxBaseUrl"), endpoint)
 
-	req, err := http.NewRequest("GET", url, nil)
+	var buyRequest BuyRequest
+	err := json.NewDecoder(r.Body).Decode(&buyRequest)
+
+	fmt.Println("TEST")
+	fmt.Println(err)
+
+	if err != nil {
+		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println(buyRequest.Quantity)
+
+	if !(buyRequest.Quantity >= 0.1 && buyRequest.Quantity < 100) {
+		http.Error(w, "Quantity of xch is incorrent, should be between 0.1 and 100", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("Buying... " + fmt.Sprintf("%f", buyRequest.Quantity) + " xch")
+
+	requestData := RequestBody{
+		InstID:  "XCH-USDT",
+		TDMode:  "cash",
+		Side:    "buy",
+		OrdType: "market",
+		TgtCcy:  "base_ccy",
+		Sz:      fmt.Sprintf("%f", buyRequest.Quantity),
+	}
+
+	requestBody, err := json.Marshal(requestData)
+	if err != nil {
+		fmt.Println("Error marshaling JSON:", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		http.Error(w, "Error creating request", http.StatusInternalServerError)
 		return
@@ -23,8 +73,14 @@ func BuyHandler(w http.ResponseWriter, r *http.Request) {
 	req.Header.Set("OK-ACCESS-KEY", os.Getenv("okxApiKey"))
 	req.Header.Set("OK-ACCESS-TIMESTAMP", timestamp)
 	req.Header.Set("OK-ACCESS-PASSPHRASE", os.Getenv("okxPassPhrase"))
+	req.Header.Set("Content-Type", "application/json")
 
-	signature := utils.CalculateSignature(os.Getenv("okxApiSecret"), timestamp, "GET", endpoint, "")
+	if os.Getenv("okxSimulatedTrading") == "1" {
+		fmt.Println("Simulation header added")
+		req.Header.Set("x-simulated-trading", "1")
+	}
+
+	signature := utils.CalculateSignature(os.Getenv("okxApiSecret"), timestamp, "POST", endpoint, string(requestBody))
 	req.Header.Set("OK-ACCESS-SIGN", signature)
 
 	client := &http.Client{}
@@ -45,5 +101,16 @@ func BuyHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Write response
+	/*w.Write([]byte(signature))
+	w.Write([]byte("  "))
+	w.Write([]byte(timestamp))
+	w.Write([]byte("  "))
+	w.Write([]byte(os.Getenv("okxBaseUrl")))
+	w.Write([]byte("  "))
+	w.Write([]byte(os.Getenv("okxPassPhrase")))
+	w.Write([]byte("  "))
+	w.Write([]byte(os.Getenv("okxApiKey")))
+	*/
 	w.Write(body)
+
 }

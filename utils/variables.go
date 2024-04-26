@@ -6,7 +6,7 @@ import (
 )
 
 func VariablesCheck() bool {
-	variables := []string{"okxApiKey", "okxPassPhrase", "okxApiSecret"}
+	variables := []string{"okxApiKey", "okxPassPhrase", "okxApiSecret", "okxMongoConnectionString", "okxBaseUrl", "apiSecretKey"}
 
 	for _, variable := range variables {
 		value := os.Getenv(variable)
