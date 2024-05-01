@@ -19,41 +19,43 @@ var client *mongo.Client
 
 func main() {
 	if !utils.VariablesCheck() {
-		panic("Define OS Variables")
+		panic("Define all required OS Variables")
 	}
 
-	if err := connectToMongoDB(); err != nil {
+	client, err := connectToMongoDB()
+
+	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
+		panic("Update mongo connection config")
 	}
 
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/", fileServer)
+	mux.Handle("POST /buy/", middleware.SecretKeyMiddleware(&handlers.BuyHandler{DB: client}))
+	mux.Handle("GET /balance/", middleware.SecretKeyMiddleware(&handlers.BalanceHandler{DB: client}))
 
-	mux.HandleFunc("POST /buy/", middleware.SecretKeyMiddleware(handlers.BuyHandler))
-	mux.HandleFunc("GET /balance/", middleware.SecretKeyMiddleware(handlers.BalanceHandler))
-
-	fmt.Println("starting server on :4003")
-	err := http.ListenAndServe("localhost:4003", mux)
+	fmt.Println("Starting server on :4003...")
+	err = http.ListenAndServe("localhost:4003", mux)
 	fmt.Println(err)
 
 }
 
-func connectToMongoDB() error {
+func connectToMongoDB() (*mongo.Client, error) {
 	clientOptions := options.Client().ApplyURI(os.Getenv("okxMongoConnectionString"))
 
 	var err error
 	client, err = mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = client.Ping(context.Background(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Println("Connected to MongoDB")
-	return nil
+	return client, nil
 }

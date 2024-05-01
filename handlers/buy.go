@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 	"webuyxch/utils"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type RequestBody struct {
@@ -24,16 +26,17 @@ type BuyRequest struct {
 	Quantity float32 `json:"quantity,string"`
 }
 
-func BuyHandler(w http.ResponseWriter, r *http.Request) {
+type BuyHandler struct {
+	DB *mongo.Client
+}
+
+func (buy *BuyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := "/api/v5/trade/order"
 	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05.999Z")
 	url := fmt.Sprintf("%s%s", os.Getenv("okxBaseUrl"), endpoint)
 
 	var buyRequest BuyRequest
 	err := json.NewDecoder(r.Body).Decode(&buyRequest)
-
-	fmt.Println("TEST")
-	fmt.Println(err)
 
 	if err != nil {
 		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
@@ -60,6 +63,7 @@ func BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
+		http.Error(w, "Unable to parse ", http.StatusBadRequest)
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
@@ -97,20 +101,18 @@ func BuyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set the response headers
+	fmt.Println(string(body))
+
+	time.Sleep(5 * time.Second)
+
+	orderDetails, err := updateLastTrade(buy.DB)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
-	// Write response
-	/*w.Write([]byte(signature))
-	w.Write([]byte("  "))
-	w.Write([]byte(timestamp))
-	w.Write([]byte("  "))
-	w.Write([]byte(os.Getenv("okxBaseUrl")))
-	w.Write([]byte("  "))
-	w.Write([]byte(os.Getenv("okxPassPhrase")))
-	w.Write([]byte("  "))
-	w.Write([]byte(os.Getenv("okxApiKey")))
-	*/
-	w.Write(body)
+	w.Write(orderDetails)
 
 }

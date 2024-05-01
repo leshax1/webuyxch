@@ -7,9 +7,15 @@ import (
 	"os"
 	"time"
 	"webuyxch/utils"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func BalanceHandler(w http.ResponseWriter, r *http.Request) {
+type BalanceHandler struct {
+	DB *mongo.Client
+}
+
+func (h *BalanceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := "/api/v5/account/balance"
 	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05.999Z")
 	url := fmt.Sprintf("%s%s", os.Getenv("okxBaseUrl"), endpoint)
@@ -23,9 +29,7 @@ func BalanceHandler(w http.ResponseWriter, r *http.Request) {
 	req.Header.Set("OK-ACCESS-KEY", os.Getenv("okxApiKey"))
 	req.Header.Set("OK-ACCESS-TIMESTAMP", timestamp)
 	req.Header.Set("OK-ACCESS-PASSPHRASE", os.Getenv("okxPassPhrase"))
-
 	if os.Getenv("okxSimulatedTrading") == "1" {
-		fmt.Println("Simulation header added")
 		req.Header.Set("x-simulated-trading", "1")
 	}
 
@@ -46,9 +50,6 @@ func BalanceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set the response headers
 	w.Header().Set("Content-Type", "application/json")
-
-	// Write response
 	w.Write(body)
 }
