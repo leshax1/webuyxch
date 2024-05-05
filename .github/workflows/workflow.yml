@@ -33,7 +33,7 @@ jobs:
 
   build-and-publish:
     name: Build and Publish Docker Image
-    needs: test # This job needs the test job to succeed
+    needs: test
     runs-on: ubuntu-22.04
 
     steps:
