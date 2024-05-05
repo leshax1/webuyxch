@@ -46,8 +46,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: leshax@gmail.com
+          password: Alexei1991
 
       - name: Push Docker image to Docker Hub
         run: docker push leshax/webuyxchamd64:${{ github.sha }}
