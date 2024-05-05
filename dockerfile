@@ -15,10 +15,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app as a static binary.
-RUN CGO_ENABLED=0 go build -o /goapp
-
-# Expose port 80 to the outside world.
-EXPOSE 80
+RUN CGO_ENABLED=0 GOARCH=amd64 go build -o /goapp
 
 # Command to run the executable.
 CMD ["/goapp"]

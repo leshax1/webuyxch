@@ -36,8 +36,8 @@ func main() {
 	mux.Handle("POST /buy/", middleware.SecretKeyMiddleware(&handlers.BuyHandler{DB: client}))
 	mux.Handle("GET /balance/", middleware.SecretKeyMiddleware(&handlers.BalanceHandler{DB: client}))
 
-	fmt.Println("Starting server on :80...")
-	err = http.ListenAndServe("0.0.0.0:80", mux)
+	fmt.Println("Starting server on :3001...")
+	err = http.ListenAndServe(":3001", mux)
 	fmt.Println(err)
 
 }
