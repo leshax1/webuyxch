@@ -12,17 +12,134 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;1,300&family=Orbitron:wght@400..900&family=Space+Mono&display=swap"
       rel="stylesheet"
     />
+    <style>
+      .blinking {
+        animation: blink-animation 1s steps(5, start) infinite;
+        -webkit-animation: blink-animation 1s steps(5, start) infinite;
+      }
+      @keyframes blink-animation {
+        to {
+          visibility: hidden;
+        }
+      }
+      @-webkit-keyframes blink-animation {
+        to {
+          visibility: hidden;
+        }
+      }
+      .unset-link {
+        all: unset;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .unset-link:hover {
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      function startCountdown() {
+        const intervalId = setInterval(() => {
+          const now = new Date();
+          // Get the current time in UTC
+          const nowUtc = new Date(
+            Date.UTC(
+              now.getUTCFullYear(),
+              now.getUTCMonth(),
+              now.getUTCDate(),
+              now.getUTCHours(),
+              now.getUTCMinutes(),
+              now.getUTCSeconds()
+            )
+          );
+          // Calculate tomorrow's date at 00:00 UTC
+          const tomorrowUtc = new Date(
+            Date.UTC(
+              nowUtc.getUTCFullYear(),
+              nowUtc.getUTCMonth(),
+              nowUtc.getUTCDate() + 1
+            )
+          );
+
+          const diff = tomorrowUtc - nowUtc;
+
+          if (diff <= 0) {
+            clearInterval(intervalId);
+            console.log("00:00:00");
+            return;
+          }
+
+          const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+          const minutes = Math.floor((diff / (1000 * 60)) % 60);
+          const seconds = Math.floor((diff / 1000) % 60);
+
+          // Format the time to HH:MM:SS
+          const formattedTime = [
+            hours.toString().padStart(2, "0"),
+            minutes.toString().padStart(2, "0"),
+            seconds.toString().padStart(2, "0"),
+          ].join(":");
+
+          const dom = document.getElementById("next-buy");
+          dom.innerHTML = formattedTime;
+        }, 1000);
+      }
+
+      function updateTimeline() {
+        const startDate = new Date("March 19, 2024");
+        const endDate = new Date("March 19, 2027");
+        const currentDate = new Date();
+
+        const totalDuration = endDate - startDate;
+        const elapsedDuration = currentDate - startDate;
+
+        const scale = 50;
+
+        // Calculate how many segments should be filled (represent elapsed time)
+        const filledSegments = Math.floor(
+          (elapsedDuration / totalDuration) * scale
+        );
+
+        console.log(filledSegments);
+
+        let timelineVisual = "";
+        for (let i = 0; i < scale; i++) {
+          if (i < filledSegments) {
+            timelineVisual += "■"; // Filled represents elapsed time
+          } else {
+            timelineVisual += "_"; // Empty represents remaining time
+          }
+        }
+
+        // Apply blinking effect to the last filled segment
+        if (filledSegments > 0 && filledSegments < scale) {
+          timelineVisual =
+            timelineVisual.substring(0, filledSegments - 1) +
+            '<span class="blinking">■</span>' +
+            timelineVisual.substring(filledSegments);
+        }
+
+        document.getElementById("timeline").innerHTML = timelineVisual;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        startCountdown();
+        updateTimeline();
+      });
+    </script>
   </head>
   <body>
     <div class="centered">
-      <h1>We buy XCH!</h1>
-      <h2>We are buying 0.1 XCH every day</h2>
-      <div>Time line here</div>
-      <div>Next buy: 00:00:00</div>
+      <h1>We are buying 0.1 XCH every day</h1>
+      <h2>Next buy: <span id="next-buy"></span></h2>
+
       <div>Total bought: 0.00000000</div>
-      <div>Net profit: 0.00000000</div>
-      <div>Order book animation</div>
-      <div>Register on OKX to Copy Trade</div>
+      <div>Net profit/loss: 0.00000000</div>
+      <div>Next halving timeline</div>
+      <div>0% <span id="timeline"></span> 100%</div>
+      <div>
+        <a class="register" href="https://okx.com/join/12452314">Register</a>on
+        OKX to Copy Trade
+      </div>
       <div>Number of traders</div>
     </div>
   </body>

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -60,7 +61,7 @@ func updateLastTrade(DB *mongo.Client) ([]byte, error) {
 		return nil, fmt.Errorf("unable to read response: %v", err)
 	}
 
-	fmt.Println("Server Response:", string(body))
+	log.Println("Server Response:", string(body))
 
 	var apiResponse Response
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
@@ -76,7 +77,7 @@ func updateLastTrade(DB *mongo.Client) ([]byte, error) {
 		return nil, err
 	}
 
-	fmt.Printf("Inserted tradeData with sz: %v , price: %v, time: %s \n", tradeData.Sz, tradeData.Px, tradeData.Ts)
+	log.Printf("Inserted tradeData with sz: %v , price: %v, time: %s \n", tradeData.Sz, tradeData.Px, tradeData.Ts)
 
 	return body, nil
 }

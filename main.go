@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -35,10 +34,11 @@ func main() {
 	mux.Handle("/", fileServer)
 	mux.Handle("POST /buy/", middleware.SecretKeyMiddleware(&handlers.BuyHandler{DB: client}))
 	mux.Handle("GET /balance/", middleware.SecretKeyMiddleware(&handlers.BalanceHandler{DB: client}))
+	mux.Handle("GET /profit/", &handlers.ProfitHandler{DB: client})
 
-	fmt.Println("Starting server on :3001...")
+	log.Println("Starting server on :3001...")
 	err = http.ListenAndServe(":3001", mux)
-	fmt.Println(err)
+	log.Println(err)
 
 }
 

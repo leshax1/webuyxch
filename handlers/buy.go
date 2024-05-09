@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -43,14 +44,14 @@ func (buy *BuyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(buyRequest.Quantity)
+	log.Println(buyRequest.Quantity)
 
 	if !(buyRequest.Quantity >= 0.1 && buyRequest.Quantity < 100) {
 		http.Error(w, "Quantity of xch is incorrent, should be between 0.1 and 100", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("Buying... " + fmt.Sprintf("%f", buyRequest.Quantity) + " xch")
+	log.Println("Buying... " + fmt.Sprintf("%f", buyRequest.Quantity) + " xch")
 
 	requestData := RequestBody{
 		InstID:  "XCH-USDT",
@@ -64,7 +65,7 @@ func (buy *BuyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
 		http.Error(w, "Unable to parse ", http.StatusBadRequest)
-		fmt.Println("Error marshaling JSON:", err)
+		log.Println("Error marshaling JSON:", err)
 		return
 	}
 
@@ -80,7 +81,7 @@ func (buy *BuyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if os.Getenv("okxSimulatedTrading") == "1" {
-		fmt.Println("Simulation header added")
+		log.Println("Simulation header added")
 		req.Header.Set("x-simulated-trading", "1")
 	}
 
@@ -101,7 +102,7 @@ func (buy *BuyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(string(body))
+	log.Println(string(body))
 
 	time.Sleep(5 * time.Second)
 
