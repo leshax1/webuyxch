@@ -9,13 +9,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ProfitHandler struct {
+type PnlHandler struct {
 	DB *mongo.Client
 }
 
-func (h *ProfitHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *PnlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	profit, err := database.Profit(h.DB)
+	pln, err := database.GetPln(h.DB)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "Error calculating profit", http.StatusInternalServerError)
@@ -23,7 +23,7 @@ func (h *ProfitHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	response := map[string]int16{"profit": profit} // Create a map to be serialized
+	response := map[string]float64{"profitUsd": pln.ProfitUsd, "profit": pln.Profit} // Create a map to be serialized
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding JSON: %v", err)

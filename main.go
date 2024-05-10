@@ -34,7 +34,7 @@ func main() {
 	mux.Handle("/", fileServer)
 	mux.Handle("POST /buy/", middleware.SecretKeyMiddleware(&handlers.BuyHandler{DB: client}))
 	mux.Handle("GET /balance/", middleware.SecretKeyMiddleware(&handlers.BalanceHandler{DB: client}))
-	mux.Handle("GET /profit/", &handlers.ProfitHandler{DB: client})
+	mux.Handle("GET /pnl/", &handlers.PnlHandler{DB: client})
 	mux.Handle("GET /total/", &handlers.TotalHandler{DB: client})
 
 	log.Println("Starting server on :3001...")
