@@ -38,18 +38,32 @@
       .unset-link:hover {
         cursor: pointer;
       }
+      .red {
+        color: red;
+      }
     </style>
     <script>
-      function getProfit() {
-        fetch("/profit")
+      function plusSign(n) {
+        return n > 0 ? "+" : "";
+      }
+
+      function getPnl() {
+        fetch("/pnl")
           .then((r) => r.json())
           .then((data) => {
-            if (data.profit)
-              document.getElementById("profit").innerHTML = data.profit + "%";
+            debugger;
+            if (data.profit && data.profitUsd)
+              document.getElementById("pnl").innerHTML =
+                plusSign(data.profit) +
+                data.profit.toFixed(0) +
+                "% (" +
+                plusSign(data.profitUsd) +
+                data.profitUsd.toFixed(0) +
+                "USD)";
 
-            if (data.profitUSD)
-              document.getElementById("profit").innerHTML =
-                data.profitUSD + " USD";
+            if (data.profit < 0) {
+              document.getElementById("pnl").className = "red";
+            }
           });
       }
 
@@ -158,7 +172,7 @@
         startCountdown();
         updateTimeline();
         updateHalvingPercentage();
-        getProfit();
+        getPnl();
         getTotal();
       });
     </script>
@@ -170,8 +184,7 @@
       <h1 style="margin-top: 0" id="next-buy"></h1>
 
       <div>Total bought: <span id="total">0</span> XCH</div>
-      <div>Profit: <span id="profit">0</span></div>
-      <div>Profit USD: <span id="profit">0</span></div>
+      <div>PNL: <span id="pnl">0</span></div>
       <br />
       <h3 style="margin-bottom: 0">
         Chia halving <span id="halving-completed"></span> completed

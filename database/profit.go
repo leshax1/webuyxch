@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"webuyxch/models"
@@ -26,86 +25,38 @@ func Profit(client *mongo.Client) (models.Pnl, error) {
 func GetPln(client *mongo.Client) (models.Pnl, error) {
 	collection := client.Database("webuyxch").Collection("trades")
 
-	pnl := new(models.Pnl)
-
-	opts := options.FindOne().SetSort(bson.D{{Key: "Ts", Value: -1}})
-	var lastTrade models.Trade
-	err := collection.FindOne(context.TODO(), bson.D{{}}, opts).Decode(&lastTrade)
+	groupStage := bson.D{{Key: "$group", Value: bson.D{
+		{Key: "_id", Value: nil},
+		{Key: "averagePx", Value: bson.D{{Key: "$avg", Value: "$Px"}}},
+		{Key: "totalSz", Value: bson.D{{Key: "$sum", Value: "$Sz"}}},
+	}}}
+	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{groupStage})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return *pnl, nil
-		}
-		return *pnl, err // Return an error if it occurs
-	}
-
-	pipeline := mongo.Pipeline{
-		bson.D{{
-			Key: "$group",
-			Value: bson.D{
-				{Key: "_id", Value: nil}, // Grouping key '_id' set to nil for aggregating all documents
-				{Key: "averagePx", Value: bson.D{{Key: "$avg", Value: "$Px"}}}, // Calculating average
-			},
-		}},
-	}
-
-	cursor, err := collection.Aggregate(context.TODO(), pipeline)
-	if err != nil {
-		log.Printf("Error occurred: %v\n", err)
+		return models.Pnl{}, err
 	}
 	defer cursor.Close(context.TODO())
 
 	var results []bson.M
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Printf("Error occurred: %v\n", err)
+	if err := cursor.All(context.TODO(), &results); err != nil {
+		return models.Pnl{}, err
 	}
-
-	////
-	pipelineSum := mongo.Pipeline{
-		bson.D{{
-			Key: "$group",
-			Value: bson.D{
-				{Key: "_id", Value: nil},                                   // Grouping key '_id' set to nil for aggregating all documents
-				{Key: "sumPx", Value: bson.D{{Key: "$sum", Value: "$Px"}}}, // Calculating sum
-			},
-		}},
+	if len(results) == 0 {
+		return models.Pnl{}, fmt.Errorf("no transactions found")
 	}
+	averageBuyPx := results[0]["averagePx"].(float64)
+	totalBuySz := results[0]["totalSz"].(float64)
 
-	cursorSumPx, err := collection.Aggregate(context.TODO(), pipelineSum)
-	if err != nil {
-		log.Printf("Error occurred: %v\n", err)
+	var lastSellTransaction bson.M
+	findOptions := options.FindOne().SetSort(bson.D{{Key: "Ts", Value: -1}})
+	if err := collection.FindOne(context.TODO(), bson.D{}, findOptions).Decode(&lastSellTransaction); err != nil {
+		return models.Pnl{}, err
 	}
-	defer cursorSumPx.Close(context.TODO())
+	lastSellPx := lastSellTransaction["Px"].(float64)
 
-	var resultsSumPx []bson.M
-	if err = cursorSumPx.All(context.TODO(), &resultsSumPx); err != nil {
-		log.Printf("Error occurred: %v\n", err)
-	}
+	fmt.Println(averageBuyPx)
 
-	///
-	var averagePx float64
-	if len(results) > 0 {
-		if avg, ok := results[0]["averagePx"].(float64); ok {
-			averagePx = float64(avg)
-			pnl.Profit = (lastTrade.Px/averagePx)*100 - 100
-		} else {
-			return *pnl, errors.New("can not convert AVG to float64")
-		}
-	} else {
-		return *pnl, nil
-	}
+	pnlDollars := (lastSellPx - averageBuyPx) * totalBuySz
+	pnlPercent := (lastSellPx - averageBuyPx) / averageBuyPx * 100
 
-	fmt.Println(resultsSumPx)
-	if len(resultsSumPx) > 0 {
-		if sum, ok := resultsSumPx[0]["sumPx"].(float64); ok {
-			sumPx := float64(sum)
-			fmt.Printf("(%f - %f) * %f", averagePx, lastTrade.Px, sumPx)
-			pnl.ProfitUsd = (pnl.Profit / 100) * sumPx
-		} else {
-			return *pnl, errors.New("can not convert SumPx to float64")
-		}
-	} else {
-		return *pnl, nil
-	}
-
-	return *pnl, nil
+	return models.Pnl{ProfitUsd: pnlDollars, Profit: pnlPercent}, nil
 }

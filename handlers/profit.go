@@ -18,7 +18,7 @@ func (h *PnlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	pln, err := database.GetPln(h.DB)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "Error calculating profit", http.StatusInternalServerError)
+		http.Error(w, "Error calculating PLN", http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
