@@ -23,7 +23,7 @@ func (h *ProfitHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	response := map[string]float64{"profit": profit} // Create a map to be serialized
+	response := map[string]int16{"profit": profit} // Create a map to be serialized
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding JSON: %v", err)

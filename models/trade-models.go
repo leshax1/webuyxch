@@ -16,3 +16,8 @@ type Trade struct {
 	Px float64
 	Ts time.Time
 }
+
+type Pnl struct {
+	Profit    float64
+	ProfitUsd float64
+}

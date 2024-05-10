@@ -27,6 +27,9 @@
           visibility: hidden;
         }
       }
+      .centered > div {
+        font-size: 1em;
+      }
       .unset-link {
         all: unset;
         cursor: pointer;
@@ -37,6 +40,29 @@
       }
     </style>
     <script>
+      function getProfit() {
+        fetch("/profit")
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.profit)
+              document.getElementById("profit").innerHTML = data.profit + "%";
+
+            if (data.profitUSD)
+              document.getElementById("profit").innerHTML =
+                data.profitUSD + " USD";
+          });
+      }
+
+      function getTotal() {
+        fetch("/total")
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.totalSz)
+              document.getElementById("total").innerHTML =
+                data.totalSz.toFixed(1);
+          });
+      }
+
       function startCountdown() {
         const intervalId = setInterval(() => {
           const now = new Date();
@@ -84,7 +110,7 @@
         }, 1000);
       }
 
-      function updateTimeline() {
+      function percentsCompleted() {
         const startDate = new Date("March 19, 2024");
         const endDate = new Date("March 19, 2027");
         const currentDate = new Date();
@@ -92,12 +118,19 @@
         const totalDuration = endDate - startDate;
         const elapsedDuration = currentDate - startDate;
 
+        return elapsedDuration / totalDuration;
+      }
+
+      function updateHalvingPercentage() {
+        document.getElementById("halving-completed").innerHTML =
+          Math.round(percentsCompleted() * 100) + "%";
+      }
+
+      function updateTimeline() {
         const scale = 50;
 
         // Calculate how many segments should be filled (represent elapsed time)
-        const filledSegments = Math.floor(
-          (elapsedDuration / totalDuration) * scale
-        );
+        const filledSegments = Math.floor(percentsCompleted() * scale);
 
         console.log(filledSegments);
 
@@ -124,23 +157,27 @@
       document.addEventListener("DOMContentLoaded", function () {
         startCountdown();
         updateTimeline();
+        updateHalvingPercentage();
+        getProfit();
+        getTotal();
       });
     </script>
   </head>
   <body>
     <div class="centered">
-      <h1>We are buying 0.1 XCH every day</h1>
-      <h2>Next buy: <span id="next-buy"></span></h2>
+      <h1>We buy 0.1 XCH every 24 hours</h1>
+      <h2 style="margin-bottom: 0">NEXT PURCHASE</h2>
+      <h1 style="margin-top: 0" id="next-buy"></h1>
 
-      <div>Total bought: 0.00000000</div>
-      <div>Net profit/loss: 0.00000000</div>
-      <div>Next halving timeline</div>
+      <div>Total bought: <span id="total">0</span> XCH</div>
+      <div>Profit: <span id="profit">0</span></div>
+      <div>Profit USD: <span id="profit">0</span></div>
+      <br />
+      <h3 style="margin-bottom: 0">
+        Chia halving <span id="halving-completed"></span> completed
+      </h3>
       <div>0% <span id="timeline"></span> 100%</div>
-      <div>
-        <a class="register" href="https://okx.com/join/12452314">Register</a>on
-        OKX to Copy Trade
-      </div>
-      <div>Number of traders</div>
+      <br />
     </div>
   </body>
 </html>

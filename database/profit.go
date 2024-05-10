@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func Profit(client *mongo.Client) (float64, error) {
+func Profit(client *mongo.Client) (int16, error) {
 	collection := client.Database("webuyxch").Collection("trades")
 
 	opts := options.FindOne().SetSort(bson.D{{Key: "Ts", Value: -1}})
@@ -48,7 +48,7 @@ func Profit(client *mongo.Client) (float64, error) {
 	if len(results) > 0 {
 		if avg, ok := results[0]["averagePx"].(float64); ok {
 			averagePx := float64(avg)
-			return (lastTrade.Px/averagePx)*100 - 100, nil
+			return int16((lastTrade.Px/averagePx)*100 - 100), nil
 		} else {
 			return 0, errors.New("can not convert AVG to float32: ")
 		}
