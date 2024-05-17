@@ -13,9 +13,9 @@
       rel="stylesheet"
     />
     <style>
-        @media only screen and (max-width: 600px) {
+      @media only screen and (max-width: 600px) {
         body {
-          font-size: 0.5em
+          font-size: 0.5em;
         }
       }
       .blinking {
@@ -63,10 +63,10 @@
             if (data.profit && data.profitUsd)
               document.getElementById("pnl").innerHTML =
                 plusSign(data.profit) +
-                data.profit.toFixed(0) +
+                data.profit.toFixed(1) +
                 "% (" +
                 plusSign(data.profitUsd) +
-                data.profitUsd.toFixed(0) +
+                data.profitUsd.toFixed(1) +
                 "USD)";
 
             if (data.profit < 0) {
@@ -187,15 +187,28 @@
   </head>
   <body>
     <div class="centered">
-      <h1 style="margin-bottom: 0; margin-top:50px">
+      <h1 style="margin-bottom: 0; margin-top: 50px">
         Chia 2027 halving <span id="halving-completed"></span> completed
       </h1>
       <div style="margin-top: 35px">0% <span id="timeline"></span> 100%</div>
       <small class="description">
-        <a class="unset-link" href="https://en.wikipedia.org/wiki/Chia_(cryptocurrency)">Chia</a> halving refers to a scheduled event in the Chia blockchain that reduces the rewards given for farming (analogous to mining in other cryptocurrencies) Chia (XCH). This concept is similar to the halving events in Bitcoin and many other cryptocurrencies, where the reward for mining new blocks is halved, hence the term "halving." The purpose of this mechanism is usually to control the rate of new coins entering the system, thereby helping to manage inflation and extend the lifespan of the reward scheme.</small>
-      <h2>We buy 0.1 XCH every 24 hours</h1>
-      <h3 style="margin-bottom: 0">NEXT PURCHASE</h2>
-      <h2 style="margin-top: 0" id="next-buy"></h1>
+        <a
+          class="unset-link"
+          href="https://en.wikipedia.org/wiki/Chia_(cryptocurrency)"
+          >Chia</a
+        >
+        halving refers to a scheduled event in the Chia blockchain that reduces
+        the rewards given for farming (analogous to mining in other
+        cryptocurrencies) Chia (XCH). This concept is similar to the halving
+        events in Bitcoin and many other cryptocurrencies, where the reward for
+        mining new blocks is halved, hence the term "halving." The purpose of
+        this mechanism is usually to control the rate of new coins entering the
+        system, thereby helping to manage inflation and extend the lifespan of
+        the reward scheme.</small
+      >
+      <h2>We buy 0.1 XCH every 24 hours</h2>
+      <h3 style="margin-bottom: 0">NEXT PURCHASE</h3>
+      <h2 style="margin-top: 0" id="next-buy"></h2>
 
       <div>Total bought: <span id="total">0</span> XCH</div>
       <div>PNL: <span id="pnl">0</span></div>
